@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediStock - Gestion de stock medical</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="login-view" class="auth-screen">
+  <form id="login-form" class="auth-card">
+    <h1>MediStock</h1>
+    <p class="subtitle">Gestion de stock de produits medicaux</p>
+    <div id="auth-error" class="error-msg" hidden></div>
+    <label>Email
+      <input type="email" id="login-email" required value="admin@medistock.local">
+    </label>
+    <label>Mot de passe
+      <input type="password" id="login-password" required value="admin123">
+    </label>
+    <button type="submit" class="btn primary">Se connecter</button>
+    <p class="switch-mode">Pas de compte ? <a href="#" id="show-register">Creer un compte</a></p>
+  </form>
+
+  <form id="register-form" class="auth-card" hidden>
+    <h1>MediStock</h1>
+    <p class="subtitle">Creer un compte</p>
+    <div id="register-error" class="error-msg" hidden></div>
+    <label>Nom complet
+      <input type="text" id="register-name" required>
+    </label>
+    <label>Email
+      <input type="email" id="register-email" required>
+    </label>
+    <label>Mot de passe
+      <input type="password" id="register-password" required minlength="6">
+    </label>
+    <button type="submit" class="btn primary">Creer le compte</button>
+    <p class="switch-mode">Deja inscrit ? <a href="#" id="show-login">Se connecter</a></p>
+  </form>
+</div>
+
+<div id="app-view" hidden>
+  <aside class="sidebar">
+    <div class="brand">MediStock</div>
+    <nav>
+      <button class="nav-link active" data-view="dashboard">Tableau de bord</button>
+      <button class="nav-link" data-view="products">Produits</button>
+      <button class="nav-link" data-view="categories">Categories</button>
+      <button class="nav-link" data-view="suppliers">Fournisseurs</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="user-name" class="user-name"></div>
+      <button id="logout-btn" class="btn ghost">Deconnexion</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view">
+      <h2>Tableau de bord</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-label">Produits</span><span class="stat-value" id="stat-total">0</span></div>
+        <div class="stat-card"><span class="stat-label">Valeur du stock</span><span class="stat-value" id="stat-value">0 €</span></div>
+        <div class="stat-card warn"><span class="stat-label">Stock bas</span><span class="stat-value" id="stat-low">0</span></div>
+        <div class="stat-card warn"><span class="stat-label">Expirent bientot</span><span class="stat-value" id="stat-expiring">0</span></div>
+        <div class="stat-card danger"><span class="stat-label">Expires</span><span class="stat-value" id="stat-expired">0</span></div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="panel">
+          <h3>Alertes stock bas</h3>
+          <table class="table"><thead><tr><th>Produit</th><th>Categorie</th><th>Quantite</th><th>Seuil</th></tr></thead>
+            <tbody id="low-stock-table"></tbody></table>
+        </div>
+        <div class="panel">
+          <h3>Produits bientot perimes</h3>
+          <table class="table"><thead><tr><th>Produit</th><th>Categorie</th><th>Expiration</th></tr></thead>
+            <tbody id="expiring-table"></tbody></table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Derniers mouvements</h3>
+        <table class="table"><thead><tr><th>Date</th><th>Produit</th><th>Type</th><th>Quantite</th><th>Utilisateur</th></tr></thead>
+          <tbody id="movements-table"></tbody></table>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="view-products" class="view" hidden>
+      <div class="view-header">
+        <h2>Produits</h2>
+        <button class="btn primary" id="new-product-btn">+ Nouveau produit</button>
+      </div>
+      <div class="filters">
+        <input type="text" id="search-input" placeholder="Rechercher par nom, SKU, lot...">
+        <select id="filter-category"><option value="">Toutes categories</option></select>
+        <select id="filter-status">
+          <option value="">Tous statuts</option>
+          <option value="low">Stock bas</option>
+          <option value="expiring">Bientot perime</option>
+          <option value="expired">Perime</option>
+        </select>
+      </div>
+      <table class="table">
+        <thead><tr>
+          <th>Nom</th><th>SKU</th><th>Categorie</th><th>Fournisseur</th>
+          <th>Quantite</th><th>Seuil</th><th>Prix unit.</th><th>Expiration</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="products-table"></tbody>
+      </table>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="view-categories" class="view" hidden>
+      <h2>Categories</h2>
+      <form id="category-form" class="inline-form">
+        <input type="text" id="category-name" placeholder="Nom de la categorie" required>
+        <button class="btn primary" type="submit">Ajouter</button>
+      </form>
+      <table class="table"><thead><tr><th>Nom</th><th>Actions</th></tr></thead>
+        <tbody id="categories-table"></tbody></table>
+    </section>
+
+    <!-- SUPPLIERS -->
+    <section id="view-suppliers" class="view" hidden>
+      <h2>Fournisseurs</h2>
+      <form id="supplier-form" class="inline-form grid-form">
+        <input type="text" id="supplier-name" placeholder="Nom" required>
+        <input type="text" id="supplier-contact" placeholder="Contact">
+        <input type="text" id="supplier-phone" placeholder="Telephone">
+        <input type="email" id="supplier-email" placeholder="Email">
+        <input type="text" id="supplier-address" placeholder="Adresse">
+        <button class="btn primary" type="submit">Ajouter</button>
+      </form>
+      <table class="table"><thead><tr><th>Nom</th><th>Contact</th><th>Telephone</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody id="suppliers-table"></tbody></table>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: product create/edit -->
+<div id="product-modal" class="modal" hidden>
+  <div class="modal-card">
+    <h3 id="product-modal-title">Nouveau produit</h3>
+    <form id="product-form">
+      <input type="hidden" id="product-id">
+      <div class="grid-form">
+        <label>Nom<input type="text" id="product-name" required></label>
+        <label>SKU<input type="text" id="product-sku"></label>
+        <label>Categorie
+          <select id="product-category"><option value="">Aucune</option></select>
+        </label>
+        <label>Fournisseur
+          <select id="product-supplier"><option value="">Aucun</option></select>
+        </label>
+        <label>Unite<input type="text" id="product-unit" value="unite"></label>
+        <label>Quantite initiale<input type="number" id="product-quantity" min="0" value="0"></label>
+        <label>Seuil d'alerte<input type="number" id="product-threshold" min="0" value="0"></label>
+        <label>Prix unitaire (€)<input type="number" id="product-price" min="0" step="0.01" value="0"></label>
+        <label>Numero de lot<input type="text" id="product-batch"></label>
+        <label>Date d'expiration<input type="date" id="product-expiry"></label>
+        <label>Emplacement<input type="text" id="product-location"></label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="product-cancel">Annuler</button>
+        <button type="submit" class="btn primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: stock movement -->
+<div id="movement-modal" class="modal" hidden>
+  <div class="modal-card">
+    <h3>Mouvement de stock - <span id="movement-product-name"></span></h3>
+    <form id="movement-form">
+      <input type="hidden" id="movement-product-id">
+      <label>Type
+        <select id="movement-type">
+          <option value="entree">Entree</option>
+          <option value="sortie">Sortie</option>
+          <option value="ajustement">Ajustement (definir la quantite)</option>
+        </select>
+      </label>
+      <label>Quantite<input type="number" id="movement-quantity" min="1" required></label>
+      <label>Motif<input type="text" id="movement-reason" placeholder="ex: reception commande, peremption..."></label>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="movement-cancel">Annuler</button>
+        <button type="submit" class="btn primary">Valider</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
